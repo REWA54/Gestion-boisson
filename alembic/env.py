@@ -7,12 +7,12 @@ from sqlalchemy import engine_from_config, pool
 
 from app.core.config import settings
 from app.db.base import Base
+from app.db.url import alembic_sync_url
 from app import models  # noqa: F401
 
 
 config = context.config
-sync_url = settings.async_database_url.replace("+asyncpg", "+psycopg")
-config.set_main_option("sqlalchemy.url", sync_url)
+config.set_main_option("sqlalchemy.url", alembic_sync_url(settings.async_database_url))
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 

@@ -11,6 +11,10 @@ os.environ.setdefault(
 )
 os.environ.setdefault("CELLIER_MEDIA_DIR", "/tmp/cellier-test-media")
 os.environ.setdefault("CELLIER_ENVIRONMENT", "test")
+os.environ.setdefault(
+    "CELLIER_ENCRYPTION_KEY",
+    "test-only-encryption-key-that-must-never-be-used-in-production",
+)
 
 from app.db.base import Base  # noqa: E402
 from app.db.session import engine  # noqa: E402
@@ -97,4 +101,3 @@ async def inventory(client: AsyncClient, admin: dict) -> dict:
         "reference_id": reference["id"],
         "variant_id": reference["variants"][0]["id"],
     }
-
