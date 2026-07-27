@@ -1,0 +1,19 @@
+{
+  "name": "Cellier — Gestion de boissons",
+  "short_name": "Cellier",
+  "description": "Gérez, rangez et retrouvez vos boissons, même hors ligne.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f4f0e7",
+  "theme_color": "#173f35",
+  "lang": "fr",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
+

@@ -1,0 +1,87 @@
+name: cellier
+
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-cellier}
+      POSTGRES_USER: ${POSTGRES_USER:-cellier}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Définissez POSTGRES_PASSWORD dans .env}
+    volumes:
+      - cellier_db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-cellier} -d ${POSTGRES_DB:-cellier}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+    networks:
+      - backend
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      CELLIER_DB_HOST: db
+      CELLIER_DB_PORT: 5432
+      CELLIER_DB_NAME: ${POSTGRES_DB:-cellier}
+      CELLIER_DB_USER: ${POSTGRES_USER:-cellier}
+      CELLIER_DB_PASSWORD: ${POSTGRES_PASSWORD}
+      CELLIER_MEDIA_DIR: /data/media
+      CELLIER_PUBLIC_URL: ${CELLIER_PUBLIC_URL:-http://localhost:8080}
+      CELLIER_ALLOWED_ORIGINS: ${CELLIER_ALLOWED_ORIGINS:-}
+      CELLIER_HOME_ASSISTANT_URL: ${CELLIER_HOME_ASSISTANT_URL:-}
+      CELLIER_HOME_ASSISTANT_TOKEN: ${CELLIER_HOME_ASSISTANT_TOKEN:-}
+      CELLIER_HOME_ASSISTANT_WEBHOOK_SECRET: ${CELLIER_HOME_ASSISTANT_WEBHOOK_SECRET:-}
+      CELLIER_ENCRYPTION_KEY: ${CELLIER_ENCRYPTION_KEY:-}
+      CELLIER_TRUSTED_PROXIES: ${CELLIER_TRUSTED_PROXIES:-127.0.0.1}
+      CELLIER_LOG_LEVEL: ${CELLIER_LOG_LEVEL:-INFO}
+    volumes:
+      - cellier_media:/data/media
+    ports:
+      - "${CELLIER_PORT:-8080}:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    networks:
+      - backend
+      - public
+
+  backup:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PGHOST: db
+      PGDATABASE: ${POSTGRES_DB:-cellier}
+      PGUSER: ${POSTGRES_USER:-cellier}
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      BACKUP_RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-14}
+      BACKUP_INTERVAL_SECONDS: ${BACKUP_INTERVAL_SECONDS:-86400}
+    volumes:
+      - ./docker/backup-loop.sh:/usr/local/bin/backup-loop.sh:ro
+      - ./backups:/backups
+      - cellier_media:/media:ro
+    command: ["/bin/sh", "/usr/local/bin/backup-loop.sh"]
+    networks:
+      - backend
+
+volumes:
+  cellier_db:
+  cellier_media:
+
+networks:
+  backend:
+    internal: true
+  public:
