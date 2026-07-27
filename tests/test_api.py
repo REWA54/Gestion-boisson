@@ -330,3 +330,23 @@ async def test_provider_credentials_are_never_returned(
     assert listed[0]["has_configuration"] is True
     assert "secret-test-key" not in str(listed)
     assert "config" not in listed[0]
+
+
+async def test_party_mode_can_always_be_disabled(
+    client: AsyncClient, admin: dict
+):
+    enabled = await client.put(
+        "/api/settings/party-mode",
+        json={"enabled": True},
+    )
+    assert enabled.status_code == 200, enabled.text
+    assert enabled.json() == {"enabled": True}
+    assert (await client.get("/api/dashboard")).json()["party_mode"] is True
+
+    disabled = await client.put(
+        "/api/settings/party-mode",
+        json={"enabled": False},
+    )
+    assert disabled.status_code == 200, disabled.text
+    assert disabled.json() == {"enabled": False}
+    assert (await client.get("/api/dashboard")).json()["party_mode"] is False

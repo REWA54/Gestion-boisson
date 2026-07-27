@@ -79,8 +79,15 @@ textarea { resize: vertical; }
 .network-banner { position: fixed; top: 0; left: 0; right: 0; height: 25px; z-index: 70; display: flex; align-items: center; justify-content: center; gap: .4rem; font-size: .65rem; font-weight: 700; letter-spacing: .05em; transition: background .2s; }
 .network-banner.online { background: #dcebe4; color: var(--green); }
 .network-banner.offline { background: #f2c66d; color: #654813; }
+.party-mode-bar { position: fixed; z-index: 65; top: 25px; left: 0; right: 0; min-height: 50px; padding: .45rem max(.75rem, env(safe-area-inset-right)) .45rem max(.75rem, env(safe-area-inset-left)); background: var(--terracotta); color: white; display: flex; align-items: center; justify-content: space-between; gap: .75rem; box-shadow: 0 7px 20px rgba(96, 43, 28, .2); }
+.party-mode-bar > div, .party-mode-bar button { display: flex; align-items: center; gap: .5rem; }
+.party-mode-bar strong { font-size: .78rem; }
+.party-mode-bar button { border: 1px solid rgba(255,255,255,.55); border-radius: 10px; background: rgba(255,255,255,.14); color: white; padding: .45rem .7rem; font-size: .72rem; font-weight: 800; }
+.party-mode-bar button:hover { background: rgba(255,255,255,.24); }
+.party-mode-bar button svg { width: 16px; height: 16px; }
 .desktop-sidebar { display: none; }
 .main-content { min-height: 100vh; padding: 25px 0 94px; }
+.party-mode .main-content { padding-top: 75px; }
 .view { max-width: 1100px; margin: 0 auto; padding: 1.7rem 1rem; }
 .view-header { margin-bottom: 1.8rem; }
 .view-header > p:last-child, .home-header p:last-child { color: var(--muted); margin-bottom: 0; }
@@ -282,6 +289,7 @@ textarea { resize: vertical; }
 
 @media (min-width: 800px) {
   .network-banner { left: 220px; }
+  .party-mode-bar { left: 220px; padding-left: 1.5rem; padding-right: 1.5rem; }
   .desktop-sidebar { display: flex; position: fixed; inset: 0 auto 0 0; width: 220px; background: var(--green); color: white; padding: 2rem 1rem; flex-direction: column; z-index: 50; }
   .desktop-brand { display: flex; align-items: center; gap: .8rem; font-family: Georgia, "Times New Roman", serif; font-size: 1.4rem; padding: 0 .6rem 2rem; }
   .desktop-brand .brand-mark { width: 42px; height: 42px; border-radius: 13px; background: var(--terracotta); }

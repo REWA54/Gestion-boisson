@@ -35,6 +35,7 @@ import {
 import { FormEvent, ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import { ApiError, api, getToken, mutation, setToken, syncQueue } from "./api";
 import { clearLocalData, getQueue } from "./offline";
+import packageMetadata from "../package.json";
 import type {
   Beverage,
   Collection,
@@ -833,7 +834,7 @@ function MoreView({
         <div className="setting-row static">
           <div className="setting-icon"><Wifi /></div><div><strong>Local-first</strong><span>Les actions hors ligne sont synchronisées automatiquement</span></div><Check />
         </div>
-        <div className="about-card"><Bottle /><div><strong>Cellier 0.1.0</strong><span>Open source · AGPL-3.0</span></div></div>
+        <div className="about-card"><Bottle /><div><strong>Cellier {packageMetadata.version}</strong><span>Open source · AGPL-3.0</span></div></div>
       </section>}
     </div>
   );
@@ -857,6 +858,7 @@ export default function App() {
   const [search, setSearch] = useState("");
   const [collectionFilter, setCollectionFilter] = useState<number | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [partyChanging, setPartyChanging] = useState(false);
   const [toasts, setToasts] = useState<Toast[]>([]);
 
   const notify = useCallback((message: string, tone: Toast["tone"] = "success") => {
@@ -1000,6 +1002,25 @@ export default function App() {
     }
   }
 
+  async function disablePartyMode() {
+    if (partyChanging) return;
+    setPartyChanging(true);
+    try {
+      await api("/api/settings/party-mode", {
+        method: "PUT",
+        body: JSON.stringify({ enabled: false }),
+      });
+      setDashboard((current) => current ? { ...current, party_mode: false } : current);
+      if (view === "more") setView("home");
+      notify("Mode soirée désactivé");
+      await loadData(true);
+    } catch (error) {
+      notify(messageFrom(error), "error");
+    } finally {
+      setPartyChanging(false);
+    }
+  }
+
   function selectById(id: number) {
     const item = beverages.find((value) => value.id === id);
     if (item) setSelected(item);
@@ -1024,6 +1045,13 @@ export default function App() {
         {online ? <Wifi size={14} /> : <WifiOff size={14} />}
         <span>{online ? (pending ? `${pending} action(s) à synchroniser` : "Synchronisé") : `Hors ligne${pending ? ` · ${pending} en attente` : ""}`}</span>
       </div>
+      {party && <div className="party-mode-bar" role="status" aria-live="polite">
+        <div><Sparkles size={18} /><strong>Mode soirée actif</strong></div>
+        <button type="button" onClick={disablePartyMode} disabled={partyChanging}>
+          {partyChanging ? <LoaderCircle className="spin" /> : <X />}
+          {partyChanging ? "Désactivation…" : "Quitter"}
+        </button>
+      </div>}
       <aside className="desktop-sidebar">
         <div className="desktop-brand"><div className="brand-mark"><Bottle /></div><strong>Cellier</strong></div>
         <nav>
